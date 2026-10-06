@@ -1,40 +1,25 @@
-const CACHE_NAME = 'ato-tracker-v2';
-const assetsToCache = [
-  '/RemoteWorkTracker/',
-  '/RemoteWorkTracker/index.html',
-  '/RemoteWorkTracker/manifest.json'
-];
+const CACHE_NAME = 'ato-tracker-v3';
+const PREFIX = 'ato-tracker-';
+const BASE = '/RemoteWorkTracker/';
+const assets = [BASE, BASE+'index.html', BASE+'manifest.json', BASE+'icons/icon-192.png', BASE+'icons/icon-512.png', BASE+'icons/maskable-512.png'];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(assetsToCache);
-    })
-  );
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(assets)));
   self.skipWaiting();
 });
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    })
-  );
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys => Promise.all(
+    keys.filter(k => k.startsWith(PREFIX) && k !== CACHE_NAME).map(k => caches.delete(k)))));
   self.clients.claim();
 });
-
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        // Fallback for offline usage
-      });
-    })
+self.addEventListener('fetch', e => {
+  const req = e.request;
+  if (req.method !== 'GET' || !req.url.startsWith(self.location.origin + BASE)) return;
+  e.respondWith(
+    fetch(req).then(res => {
+      const copy = res.clone();
+      caches.open(CACHE_NAME).then(c => c.put(req, copy));
+      return res;
+    }).catch(() => caches.match(req).then(r => r || (req.mode === 'navigate' ? caches.match(BASE+'index.html') : undefined)))
   );
 });
