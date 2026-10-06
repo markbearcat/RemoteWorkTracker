@@ -1,0 +1,15 @@
+{
+  "name": "ATO Remote & Expense Tracker",
+  "short_name": "ATO Tracker",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#F0F2F5",
+  "theme_color": "#16A545",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/google/material-design-icons/master/png/device/devices_black_48dp.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    }
+  ]
+}
