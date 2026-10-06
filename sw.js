@@ -1,7 +1,8 @@
-const CACHE_NAME = 'ato-tracker-v1';
+const CACHE_NAME = 'ato-tracker-v2';
 const assetsToCache = [
-  './index.html',
-  './manifest.json'
+  '/RemoteWorkTracker/',
+  '/RemoteWorkTracker/index.html',
+  '/RemoteWorkTracker/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -32,7 +33,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       return cachedResponse || fetch(event.request).catch(() => {
-        // Fallback for offline usage if needed
+        // Fallback for offline usage
       });
     })
   );
