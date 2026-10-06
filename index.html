@@ -224,7 +224,7 @@
         <!-- VIEW 1: HOURS -->
         <div id="view-hours" class="app-view active">
             <div class="card">
-                <div class="card-title">⏱️ Log WFH Hours</div>
+                <div class="card-title">⏱️️ Log WFH Hours</div>
                 <form id="wfhForm" onsubmit="handleWfhSubmit(event)">
                     <div class="form-group"><label class="form-label">Date</label><input type="date" id="wfhDate" required></div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
@@ -432,7 +432,8 @@
             if (!url) return;
 
             try {
-                const response = await fetch(url);
+                const response = await fetch(url, { method: 'GET', redirect: 'follow' });
+                if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
                 
                 if (data.wfh) {
@@ -463,8 +464,9 @@
                 }
 
                 renderHistory();
+                console.log("Cloud sync refreshed successfully.");
             } catch (err) {
-                console.log("Offline or fetch error, using local cache:", err);
+                console.log("PWA restricted cloud fetch, falling back to local cache:", err);
             }
         }
 
