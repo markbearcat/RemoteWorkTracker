@@ -1,0 +1,32 @@
+{
+  "id": "/RemoteWorkTracker/?app=rwt-ato-tracker",
+  "name": "ATO Remote & Expense Tracker",
+  "short_name": "ATO Tracker",
+  "description": "Log work-from-home hours and expenses for ATO claims.",
+  "start_url": "/RemoteWorkTracker/index.html?source=rwt-pwa",
+  "scope": "/RemoteWorkTracker/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F0F2F5",
+  "theme_color": "#16A545",
+  "icons": [
+    {
+      "src": "icons/rwt-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/rwt-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/rwt-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
