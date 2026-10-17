@@ -290,7 +290,7 @@
                         <label class="form-label">Receipt Photo</label>
                         <div class="receipt-dropzone" onclick="document.getElementById('receiptFile').click()">
                             <span style="font-weight: 600; color: var(--primary-green);">📷 Tap to Snap or Upload Receipt</span>
-                            <input type="file" id="receiptFile" accept="image/*" onchange="previewReceipt(this)">
+                            <input type="file" id="receiptFile" accept="image/*" onchange="processImageFile(this, 'preview')">
                             <img id="receiptPreview" class="receipt-preview">
                         </div>
                     </div>
@@ -378,7 +378,7 @@
                     <label class="form-label">Change / Attach Receipt</label>
                     <div class="receipt-dropzone" onclick="document.getElementById('editReceiptFile').click()">
                         <span style="font-weight: 600; color: var(--primary-green);">📷 Tap to Change or Upload Receipt</span>
-                        <input type="file" id="editReceiptFile" accept="image/*" onchange="previewEditReceipt(this)">
+                        <input type="file" id="editReceiptFile" accept="image/*" onchange="processImageFile(this, 'editPreview')">
                         <img id="editReceiptPreview" class="receipt-preview">
                     </div>
                 </div>
@@ -521,27 +521,44 @@
             }
         }
 
-        function previewReceipt(input) {
+        function processImageFile(input, targetType) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    receiptBase64 = e.target.result;
-                    const preview = document.getElementById('receiptPreview');
-                    preview.src = receiptBase64;
-                    preview.style.display = 'block';
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 1000;
+                        const MAX_HEIGHT = 1000;
+                        let width = img.width;
+                        let height = img.height;
 
-        function previewEditReceipt(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    editReceiptBase64 = e.target.result;
-                    const preview = document.getElementById('editReceiptPreview');
-                    preview.src = editReceiptBase64;
-                    preview.style.display = 'block';
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+                        if (targetType === 'preview') {
+                            receiptBase64 = compressedBase64;
+                            const preview = document.getElementById('receiptPreview');
+                            preview.src = compressedBase64;
+                            preview.style.display = 'block';
+                        } else {
+                            editReceiptBase64 = compressedBase64;
+                            const preview = document.getElementById('editReceiptPreview');
+                            preview.src = compressedBase64;
+                            preview.style.display = 'block';
+                        }
+                    }
+                    img.src = e.target.result;
                 }
                 reader.readAsDataURL(input.files[0]);
             }
