@@ -303,7 +303,7 @@
         <div id="view-history" class="app-view">
             <div class="card" style="margin-bottom: 12px;">
                 <div class="card-title" style="margin-bottom: 4px;">📊 History Log</div>
-                <p class="list-meta">Tap any entry card to edit details. Tap delete to remove.</p>
+                <p class="list-meta">Tap any entry card to edit details or attach/change receipts.</p>
             </div>
             <div id="historyContainer"></div>
         </div>
@@ -374,6 +374,14 @@
                         <option value="Reimbursed">Reimbursed</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Change / Attach Receipt</label>
+                    <div class="receipt-dropzone" onclick="document.getElementById('editReceiptFile').click()">
+                        <span style="font-weight: 600; color: var(--primary-green);">📷 Tap to Change or Upload Receipt</span>
+                        <input type="file" id="editReceiptFile" accept="image/*" onchange="previewEditReceipt(this)">
+                        <img id="editReceiptPreview" class="receipt-preview">
+                    </div>
+                </div>
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -403,6 +411,7 @@
         let expenseLogs = JSON.parse(localStorage.getItem('expense_logs')) || [];
 
         let receiptBase64 = "";
+        let editReceiptBase64 = "";
         let selectedCategory = "Equipment & Hardware";
         let selectedCurrency = "AUD";
         let selectedStatus = "Pending";
@@ -451,7 +460,7 @@
                         aud: row[5],
                         reimbursable: row[6],
                         status: row[7],
-                        receipt: ""
+                        receipt: row[8] || ""
                     })).reverse();
                     localStorage.setItem('expense_logs', JSON.stringify(expenseLogs));
                 }
@@ -519,6 +528,19 @@
                     receiptBase64 = e.target.result;
                     const preview = document.getElementById('receiptPreview');
                     preview.src = receiptBase64;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function previewEditReceipt(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editReceiptBase64 = e.target.result;
+                    const preview = document.getElementById('editReceiptPreview');
+                    preview.src = editReceiptBase64;
                     preview.style.display = 'block';
                 }
                 reader.readAsDataURL(input.files[0]);
@@ -593,6 +615,8 @@
             const modal = document.getElementById('editModal');
             document.getElementById('editId').value = id;
             document.getElementById('editType').value = type;
+            editReceiptBase64 = "";
+            document.getElementById('editReceiptPreview').style.display = 'none';
 
             if(type === 'WFH') {
                 const item = wfhLogs.find(i => i.id === id);
@@ -673,8 +697,11 @@
                     item.aud = `$${convertedAUD}`;
                     item.status = document.getElementById('editStatus').value;
                     item.reimbursable = item.status !== 'N/A' ? 'Yes' : 'No';
+                    if (editReceiptBase64) {
+                        item.receipt = editReceiptBase64;
+                    }
                     localStorage.setItem('expense_logs', JSON.stringify(expenseLogs));
-                    updatedPayload = item;
+                    updatedPayload = { ...item, receipt: editReceiptBase64 };
                 }
             }
 
@@ -711,10 +738,11 @@
                             </div>
                         </div>`;
                 } else {
+                    let receiptIndicator = (item.receipt && item.receipt !== "None") ? ' 📎' : '';
                     return `
                         <div class="list-card" onclick="openEditModal('Expense', '${item.id}')">
                             <div>
-                                <div class="list-main">${item.description}</div>
+                                <div class="list-main">${item.description}${receiptIndicator}</div>
                                 <div class="list-meta">${item.date} • ${item.category} (${item.original})</div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 12px;">
